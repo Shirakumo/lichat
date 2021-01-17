@@ -42,6 +42,11 @@
   (h2
    :font-size 1.8em
    :text-align center))
+ (.single
+  :max-width 50%
+  :min-width 20em
+  :min-height 20em
+  :box-sizing border-box)
  (.side
   :max-width 50%
   :min-width 20em
