@@ -10,6 +10,8 @@
   :text-align center
   :font-size 1.5em
   :background (hex FFFFFF)
+  :background (url "background.svg")
+  :background-size cover
   (img
    :vertical-align middle
    :margin 0 0.5em 0 0)
