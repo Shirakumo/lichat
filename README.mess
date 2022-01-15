@@ -55,7 +55,7 @@ Special care must be taken when ``object``s are read from the wire. An error mus
 Null characters (``U+0000``) must not appear anywhere within a wireable. If a string were to contain null characters, they must be filtered out. If a symbol were to contain null characters, the message may not be put to the wire.
 
 #### 1.4 Machine-Readable Definition
-All object types are specified in "lichat.sexpr"(lichat.sexpr) in a machine-readable format based on the above wire format. The same format //should// also be used by extension providers to define their extensions to the protocol. The definitions can be parsed by parsing the file into a sequence of ``EXPR``s, each being further parsed according to the following ``DEFINITION`` rule:
+All object types are specified in "lichat.sexpr"(link lichat.sexpr) in a machine-readable format based on the above wire format. The same format //should// also be used by extension providers to define their extensions to the protocol. The definitions can be parsed by parsing the file into a sequence of ``EXPR``s, each being further parsed according to the following ``DEFINITION`` rule:
 
 ::BNF
 DEFINITION           ::= PACKAGE | OBJECT | EXTENSION
@@ -345,7 +345,7 @@ A server or client may provide extensions to the protocol in the following manne
 
 Each extension to the protocol should receive a unique name of the form ``producer-name`` where ``producer`` is an identifier for who wrote up the extension's protocol, and ``name`` should be a name for the extension itself. For each extension that a server and client support, they must include the unique name of it as a string in the ``connect`` update's ``extensions`` list. Each producer also owns a symbol package with the producer's name, in which they may freely specify new symbols.
 
-The "shirakumo" set of extensions are described in the "shirakumo.mess"(shirakumo.mess) document.
+The "shirakumo" set of extensions are described in the "shirakumo.mess"(link shirakumo.mess) document.
 
 ### 7. General Conventions
 The following are general conventions for server and client implementors. However, they are not mandatory to follow, as they may only make sense for certain types of implementations.

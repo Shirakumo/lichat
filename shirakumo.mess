@@ -1,5 +1,5 @@
 # Shirakumo Extensions
-This document outlines extensions to the Lichat core protocol.
+This document outlines extensions to the Lichat core protocol. As with the core protocol, you can find a machine-readable version in "shirakumo.sexpr"(link shirakumo.sexpr)
 
 ## 1. Backfill (shirakumo-backfill)
 Purpose: allow users to catch up with the contents of a channel should they initiate a new connection which does not currently have access to all the past updates of the channel. 
