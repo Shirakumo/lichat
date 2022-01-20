@@ -46,7 +46,7 @@ This protocol specifies two core packages: ``lichat`` and ``keyword``. Symbols t
 When a symbol is read, it is checked whether it exists in the corresponding package laid out by the previous rules. If it does not exist, it may be substituted for a placeholder symbol. Servers must take special care not to keep symbol objects they don't know around, to avoid letting clients overload the server's memory with inexistent symbols.
 
 ### 1.2 Objects
-Special care must be taken when ``object``s are read from the wire. An error must be generated if the object is malformed by either a non-symbol in the first place of its list, imbalanced key/value pairs in the tail, or non-keywords in the key position. An error must also be generated if the symbol at the first position does not name a class that is a subclass of ``update``.
+Special care must be taken when ``object``s are read from the wire. An error must be generated if the object is malformed by either a non-symbol in the first place of its list, imbalanced key/value pairs in the tail, or non-keywords in the key position. An error must also be generated if the symbol at the first position does not name a class that is a subclass of ``object``. Finally, any field whose value is specified as ``nil`` on the wire can be equated with being unset, and vice versa when printing an object if an optional field is unset or ``nil``, it may be omitted from the wire representation.
 
 ### 1.3 Null Characters
 Null characters (``U+0000``) must not appear anywhere within a wireable. If a string were to contain null characters, they must be filtered out. If a symbol were to contain null characters, the message may not be put to the wire.
