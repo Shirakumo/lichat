@@ -309,11 +309,11 @@ block           ::= group
                   | image
                   | quote
                   | extended-block
-group           ::= (content*)
-paragraph       ::= (:p inline*)
-unordered-list  ::= (:ul group*)
+group           ::= (:g () content*)
+paragraph       ::= (:p () inline*)
+unordered-list  ::= (:ul () group*)
                 --- Wherein each group represents a list item
-ordered-list    ::= (:ol group*)
+ordered-list    ::= (:ol () group*)
                 --- Wherein each group represents a list item
 code            ::= (:code string string)
                 --- The first string designates the language (and thus syntax highlighting rules) for the code in the second string.
@@ -335,13 +335,13 @@ inline          ::= bold
                   | color
                   | string
                   | extended-inline
-bold            ::= (:b inline*)
-italic          ::= (:i inline*)
-underline       ::= (:u inline*)
-strikethrough   ::= (:s inline*)
-monospace       ::= (:m inline*)
-subtext         ::= (:sub inline*)
-supertext       ::= (:sup inline*)
+bold            ::= (:b () inline*)
+italic          ::= (:i () inline*)
+underline       ::= (:u () inline*)
+strikethrough   ::= (:s () inline*)
+monospace       ::= (:m () inline*)
+subtext         ::= (:sub () inline*)
+supertext       ::= (:sup () inline*)
 link            ::= (:link target inline*)
 color           ::= (:color rgb inline*)
 extended-inline ::= (symbol list inline*)
@@ -351,6 +351,8 @@ rgb             ::= (float float float)
 target          ::= string
                 --- An URL encoded in the string.
 ::
+
+Each of the blocks in the tree thus has the general form of ``(kind argument/s content*)`` which should simplify the process of parsing it and turning it into a visual representation.
 
 Clients should allow users to write the rich text using some form of surface syntax. The following are suggested possibilities for such surface syntax:
 
