@@ -77,6 +77,8 @@ When the client sees an ``edit`` update, it should change the ``text`` of the ``
 
 If the client receives an ``edit`` update whose ``id`` and ``from`` fields do not refer to any previous ``message`` update, the client should simply ignore the update.
 
+If the client also supports the ``shirakumo-markup`` extension, it should also update the ``rich`` field of the original ``message``.
+
 ## 5. Channel Trees (shirakumo-channel-trees)
 Purpose: enforces a structure on channels and allows creating channel hierarchies for easier grouping.
 
