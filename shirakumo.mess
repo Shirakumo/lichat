@@ -290,18 +290,75 @@ Purpose: allows using different markup languages to stylise the text in ``text-u
 
 ``text-update``s all receive the following additional fields:
 
-- ``rich`` A ``string`` containing a version of the text with markup information included. The ``text`` field must be set to the same text as this field, but with all markup information stripped away.
-- ``markup`` A ``string`` identifying the markup that is used in the rich text.
+- ``rich`` An AST containing a version of the text with markup information included. The ``text`` field must be set to the same text as this field, but with all markup information stripped away.
 
-When a client receives a ``text-update`` it should check the ``markup`` field and determine whether it supports rendering the given format. If it is supported, the client should render the text according to the ``rich`` contents instead of the ``text`` contents. The client may ignore parts of the rich text if it considers the markup unsuitable. If the markup contains errors, the client must fall back to displaying the unformatted ``text`` instead.
+When a client receives a ``text-update`` it should check the ``rich`` field and if it is set, the client should render the text according to the ``rich`` contents instead of the ``text`` contents. The client may ignore parts of the rich text if it considers the markup unsuitable. If the markup contains errors, the client must fall back to displaying the unformatted ``text`` instead.
+The content in the ``rich`` field is a an AST according to the following BNF:
 
-The following markup formats are officially recognised, though others may be used:
+:: BNF
+rich            ::= group
+content         ::= block | inline
+block           ::= group
+                  | paragraph
+                  | unordered-list
+                  | ordered-list
+                  | code
+                  | section
+                  | image
+                  | quote
+                  | extended-block
+group           ::= (content*)
+paragraph       ::= (:p inline*)
+unordered-list  ::= (:ul group*)
+                --- Wherein each group represents a list item
+ordered-list    ::= (:ol group*)
+                --- Wherein each group represents a list item
+code            ::= (:code string string)
+                --- The first string designates the language (and thus syntax highlighting rules) for the code in the second string.
+section         ::= (:section (integer inline*) content*)
+                --- The integer designates the depth of the header, and its accompanying inline segments the header content.
+image           ::= (:image target)
+quote           ::= (:quote string content*)
+                --- The string designating the quote author
+extended-block  ::= (symbol list content*)
+                --- A new block type defined in an extension. If the client does not support this block type, it should ignore the arguments list and treat the block as a group instead.
+inline          ::= bold
+                  | italic
+                  | underline
+                  | strikethrough
+                  | monospace
+                  | subtext
+                  | supertext
+                  | link
+                  | color
+                  | string
+                  | extended-inline
+bold            ::= (:b inline*)
+italic          ::= (:i inline*)
+underline       ::= (:u inline*)
+strikethrough   ::= (:s inline*)
+monospace       ::= (:m inline*)
+subtext         ::= (:sub inline*)
+supertext       ::= (:sup inline*)
+link            ::= (:link target inline*)
+color           ::= (:color rgb inline*)
+extended-inline ::= (symbol list inline*)
+                --- A new inline type defined in an extension. If the client does not support this block type, it should ignore the arguments list and treat the block as a group instead.
+rgb             ::= (float float float)
+                --- An sRGB additive colour triplet, with 0 meaning no contribution and 1 meaning full contribution to the respective channel.
+target          ::= string
+                --- An URL encoded in the string.
+::
+
+Clients should allow users to write the rich text using some form of surface syntax. The following are suggested possibilities for such surface syntax:
 
 - ``html`` HTML5 content
 - ``markless`` "Markless"(https://shirakumo.github.io/markless)
 - ``markdown`` "Markdown"(https://daringfireball.net/projects/markdown/syntax)
 - ``org`` "org-mode"(https://orgmode.org)
 - ``rest`` "reStructuredText"(https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html)
+
+Note that in combination with the ``shirakumo-edit`` extension, the client should also support the inverse operation of turning the AST back into the surface syntax for the user.
 
 ## 14. User Info (shirakumo-user-info)
 Purpose: allows associating additional information with registered user accounts.
