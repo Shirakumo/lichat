@@ -654,3 +654,21 @@ When the server receives a ``typing`` update, it proceeds as follows:
 When a client receives a ``typing`` update, it should notify the user that the update's sender is typing something. If no new ``typing`` update is received within the next 5 seconds, the typing notification should be cleared.
 
 When the client's user types, the client may send a ``typing`` update to the current channel, as long as the previous ``typing`` update was sent more than 4 seconds ago.
+
+## 24. OTP (shirakumo-otp)
+Purpose: allows using one-time-passwords to authenticate against a user account.
+
+The ``register`` update is changed to include an additional field called ``otp-key`` which is a ``string`` and contains some implementation-specific key used to determine validity of future OTP tokens.
+
+When the server receives a ``register`` update with the ``otp-key`` field set, it should act as follows:
+
+1. If the ``otp-key`` string is empty (zero length):
+   1. It deactivates one-time-password authentication for the account.
+   2. Otherwise, it stores the ``otp-key`` and enables the account for one-time-password authentication. If the key is invalid, an ``invalid-otp-key`` failure is returned and the update is dropped.
+2. It sends the update back to the user.
+
+The ``connect`` update is changed to include an additional field called ``otp-token`` which is a ``string`` and contains some implementation-specific one-time-password token obtained through the implementation's specified password generation mechanism.
+
+When the server receives a ``connect`` update for an account for which one-time-password authentication has been enabled, an additional verification step is inserted after §4.1.7:
+
+1. The ``otp-token`` is verified for validity against the stored ``otp-key`` by an implementation-specific mechanism. If the token is not valid or not provided, an ``invalid-password`` update is returned and the connection is closed.

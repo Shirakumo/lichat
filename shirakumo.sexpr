@@ -132,3 +132,10 @@
 
 (define-extension "shirakumo-typing"
   (define-object shirakumo:typing (lichat:channel-update)))
+
+(define-extension "shirakumo-otp"
+  (define-object shirakumo:invalid-otp-key (lichat:update-failure))
+  (define-object-extension lichat:connect ()
+    (shirakumo:otp-token string :optional))
+  (define-object-extension lichat:register ()
+    (shirakumo:otp-key string :optional)))
