@@ -633,10 +633,11 @@ A new update is introduced called ``last-read``, which is a ``channel-update``. 
 
 When the server receives a ``last-read`` update, it proceeds as follows:
 
-1. If the ``update-id`` and ``target`` fields are set:
+1. If the user is not registered, an error of type ``no-such-profile`` is sent back and the update is dropped.
+2. If the ``update-id`` and ``target`` fields are set:
   1. The id and target are stored for the user's 'last read message' in the associated channel.
   2. The update is sent back to the user.
-2. Otherwise:
+3. Otherwise:
   1. The update is modified to use the 'last read message' information to fill in the ``update-id`` and ``target`` fields.
   2. The update is sent back to the sending connection.
 
