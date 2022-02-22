@@ -150,6 +150,7 @@ After the connection between a client and a server has been established through 
 11. The server responds with a ``connect`` update of the same id as the one the client sent. The ``from`` field must correspond to the user's actual name.
 12. If the user already existed, the server responds with ``join`` updates for each of the channels the user is currently inhabiting, with the primary channel always being the first.
 13. If the user did not already exist, it is joined to the primary channel.
+14. The server sends a ``message`` update for the primary channel from the primary user. The message contents are up to the server, and should typically be some kind of welcome banner.
 
 Should the user send a ``connect`` update after already having completed the connection handshake above, the server must drop the update and respond with an ``already-connected`` update.
 
