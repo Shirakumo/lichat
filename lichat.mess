@@ -133,6 +133,14 @@ When an update is sent to a channel, it is distributed to all the users currentl
 ### 3.1 Null Termination of Updates
 At the end of each update there has to be a single null character (``U+0000``). This character can be used to distinguish individual updates on the wire and may serve as a marker to attempt and stabilise the stream in case of malformed updates or other problems that might occur on the lower level.
 
+### 3.2 Failures
+If an update cannot be performed for some reason, the server will respond with a ``failure`` update. If the client's update was successfully parsed, this failure must be a subclass of ``update-failure``, which will reference the failed update's ``id`` in the ``update-id`` slot, so that the client can reconstruct which of the requests failed.
+
+### 3.3 Warnings
+In addition to the normal reply of an update -- whether successful or failed -- the server may also send an update that is a subclass of ``warning``. This update **must** be ``from`` the primary user, and must reference the original update in its ``update-id`` slot. The client may use the warning to inform the user or adjust future behaviour in response to the server's notice.
+
+Note that a warning may only be issued if the request is processed otherwise. The server **must not** only reply with a warning. The server further **must** reply with the warning //before// replying with the response to the original update.
+
 ## 4. Connection
 ### 4.1 Connection Establishment
 After the connection between a client and a server has been established through some implementation-dependant means, the client must send a ``connect`` update. The update will attempt to register the user on the server, as follows:
@@ -160,6 +168,8 @@ If the ``clock`` of an update diverges too much, the server may respond with a `
 The server must receive an update on a connection within at least a certain implementation-dependant interval that must be larger than 100 seconds. If this does not happen, the server may assume a disconnection and drop the client after replying with a ``connection-unstable`` update. If the server does not receive an update from the client within an interval of up to 60 seconds, the server must send a ``ping`` update to the client, to which the client must respond with a ``pong`` update. This is to ensure the stability of the connection.
 
 If the client sends too many updates in too short a time interval, the server may start dropping updates, as long as it responds with a ``too-many-updates`` update when it starts doing so. This throttling may be sustained for an implementation-dependant length of time. The client might send occasional ``ping`` requests to figure out if the throttling has been lifted. The server may also close the connection if it deems the flooding too severe.
+
+Instead of a hard-throttle as described in the previous paragraph, the server may also implement a soft throttle by queueing updates and processing them after a delay. Should the client become throttled in this way, the server must send an ``updates-throttled`` warning once updates begin to be queued.
 
 ### 4.3 Connection Closure
 A connection may be closed either due to a ``disconnect`` update request from the client, or due to problems on the server side. When the connection is closed, the server must act as follows:
