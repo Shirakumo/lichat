@@ -31,7 +31,9 @@
 
 (define-extension "shirakumo-channel-info"
   (define-object shirakumo:channel-info (lichat:channel-update)
-    (:keys (or (list symbol) T)))
+    ;; Ensure that the required keys are interned into the KEYWORD
+    ;; package.
+    (:keys (or (list (or (member :news :topic :rules :contact :url) symbol)) T)))
   (define-object shirakumo:set-channel-info (lichat:channel-update lichat:text-update)
     (:key symbol))
   (define-object shirakumo:no-such-channel-info (lichat:update-failure)
