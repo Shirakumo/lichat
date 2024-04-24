@@ -139,3 +139,16 @@
     (shirakumo:otp-token string :optional))
   (define-object-extension lichat:register ()
     (shirakumo:otp-key string :optional)))
+
+(define-extension "shirakumo-roles"
+  (define-object shirakumo:role-update (lichat:channel-update)
+    (shirakumo:role string))
+  (define-object shirakumo:role (shirakumo:role-update)
+    (:permissions (list list) :optional))
+  (define-object shirakumo:delete-role (shirakumo:role-update))
+  (define-object shirakumo:assign-role (shirakumo:role-update lichat:target-update))
+  (define-object shirakumo:remove-role (shirakumo:role-update lichat:target-update))
+  (define-object shirakumo:roles (lichat:channel-update)
+    (:target string :optional)
+    (shirakumo:roles (list string) :optional))
+  (define-object shirakumo:no-such-role (shirakumo:role-update)))
