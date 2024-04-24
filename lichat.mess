@@ -409,6 +409,8 @@ A server or client may provide extensions to the protocol in the following manne
   An extension may introduce additional constraints and restrictions on whether existing updates are considered valid.
 - **Additional User Attributes**
   An extension may specify additional attributes stored in profiles and returned through ``server-info``.
+- **Additional Server Objects**
+  An extension may specify new server objects and new attributes on existing server objects.
 
 Each extension to the protocol should receive a unique name of the form ``producer-name`` where ``producer`` is an identifier for who wrote up the extension's protocol, and ``name`` should be a name for the extension itself. For each extension that a server and client support, they must include the unique name of it as a string in the ``connect`` update's ``extensions`` list. Each producer also owns a symbol package with the producer's name, in which they may freely specify new symbols.
 
