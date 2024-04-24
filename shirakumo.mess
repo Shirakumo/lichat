@@ -706,11 +706,13 @@ The channel object is updated to have a ``roles`` field, which maps a role name 
 The following default set of role objects should be added to every newly created channel:
 
 - ``name``: ``admin``
-  ``permissions``: ``((kick T) (pull T) (set-channel-info T) (destroy T) (quiet T) (unquiet T) (quieted T) (bridge T) (permissions T))``
+  ``permissions``: ``((kick T) (pull T) (set-channel-info T) (destroy T) (quiet T) (unquiet T) (quieted T) (bridge T) (permissions T) (grant T) (deny T) (role T) (delete-role T) (assign-role T) (remove-role T) (roles T))``
   ``members``: ``(creator)``
 - ``name``: ``moderator``
-  ``permissions``: ``((kick T) (pull T) (set-channel-info T) (quiet T) (unquiet T) (quieted T))``
+  ``permissions``: ``((kick T) (pull T) (set-channel-info T) (quiet T) (unquiet T) (quieted T) (roles T))``
   ``members``: ``()``
+- ``name``: ``banned``
+  ``permissions``: ``((join NIL) (message NIL) (kick NIL) (pull NIL) (permissions NIL) (grant NIL) (deny NIL) (users NIL) (channels NIL) (backfill NIL) (data NIL) (emote NIL) (edit NIL) (channel-info NIL) (set-channel-info NIL) (destroy NIL) (pause NIL) (quiet NIL) (unquiet NIL) (quieted NIL) (bridge NIL) (search NIL) (react NIL) (last-read NIL) (typing NIL) (role NIL) (delete-role NIL) (assign-role NIL) (remove-role NIL) (roles NIL))``
 
 Update permissions checking (§5.1.8) is extended as follows:
 
