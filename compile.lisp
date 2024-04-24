@@ -1,8 +1,13 @@
 #|
-sbcl --noinform --load "$0" --eval '(generate-all)' --quit && exit
+exec sbcl \
+  --noinform \
+  --disable-debugger \
+  --eval "(ql:quickload '(cl-markless-plump lass lquery) :silent T)" \
+  --load "$0" \
+  --eval "(generate-all)" \
+  --quit \
+  --end-toplevel-options "${@:1}"
 |#
-
-#+quicklisp (ql:quickload '(cl-markless-plump lass lquery) :silent T)
 
 (defvar *here* #.(or *compile-file-pathname*
                      *load-pathname*
