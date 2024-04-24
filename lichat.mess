@@ -1,4 +1,6 @@
 # Lichat Protocol Specification
+This is the specification for the Lichat chat protocol version 2.
+
 ## 1. Wire Format & Data Types
 The Lichat protocol defines the following basic data type hierarchy:
 
