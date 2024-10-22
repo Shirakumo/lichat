@@ -500,7 +500,7 @@ A server or client may provide extensions to the protocol in the following manne
 - **Additional Update Types**
   If such an update is sent to a client that does not recognise it, it should be ignored. If such an update is sent to a server that does not recognise it, the server will respond with an ``invalid-update``.
 - **Additional Update Fields**
-  A client or server may extend the existing update classes with additional, optional fields to provide further information or other kinds of behaviour. The server or client is not allowed to introduce additional required fields. When an update with unknown initargs is received, the unknown initargs are to be ignored. An extension may only add existing, well-specified initargs in keyword form (``:text``, ``:channel``, ``:target``, ``:update-id``). Other additional initargs must be symbols from an extension-owned package.
+  A client or server may extend the existing update classes with additional, optional fields to provide further information or other kinds of behaviour. The server or client is not allowed to introduce additional required fields. When an update with unknown fields is received, the unknown fields are to be ignored. An extension may only add existing, well-specified fields in keyword form (``:text``, ``:channel``, ``:target``, ``:update-id``). Other additional fields must be symbols from an extension-owned package.
 - **Additional Constraints**
   An extension may introduce additional constraints and restrictions on whether existing updates are considered valid.
 - **Additional User Attributes**
