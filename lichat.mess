@@ -193,7 +193,7 @@ A profile's password must be at least 6 characters long. It may contain any kind
 Exactly one of these must exist on any server, and it must be named the same as the server's user. All users that are currently connected to the server must inhabit this channel. The channel may not be used for sending messages by anyone except for system administrators or the server itself. The primary channel is also used for updates that are "channel-less," to check them for permissions.
 
 #### 2.4.2 Anonymous Channels
-Anonymous channels must have a random name that is prefixed with an ``@``. Their permissions must prevent users that are not already part of the channel from sending ``join``, ``channels``, ``users``, or any other kind of update to it, thus essentially making it invisible, safe for specially invited users.
+Anonymous channels must have a random name that is prefixed with an ``@``. Their permissions must prevent users that are not already part of the channel from sending ``join``, ``channels``, ``users``, or any other kind of update to it, thus essentially making it invisible, except for specially invited users.
 
 #### 2.4.3 Regular Channels
 Any other channel is considered a "regular channel".
