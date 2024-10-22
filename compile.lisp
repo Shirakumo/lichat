@@ -38,7 +38,8 @@ exec sbcl \
       :background (hex E0E0E0))
      (code
       :background (hex F0F0F0)
-      :padding 0 0.1em)
+      :padding 0 0.1em
+      :line-height 1.0)
      (.code-block
       :padding 0.1em 0.5em
       :overflow-x auto))))
