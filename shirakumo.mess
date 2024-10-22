@@ -675,24 +675,7 @@ When the server receives a ``connect`` update for an account for which one-time-
 
 1. The ``otp-token`` is verified for validity against the stored ``otp-key`` by an implementation-specific mechanism. If the token is not valid or not provided, an ``invalid-password`` update is returned and the connection is closed.
 
-## 25. URL (shirakumo-url)
-Purpose: specifies a URL format to reference specific messages.
-
-This does not introduce any protocol extensions and instead specifies a URL format that clients should be able to interpret to link to servers, channels, and specific messages. The specific format is as follows:
-
-::
-URL     ::= 'lichat://' HOST (':' PORT)? '/' (CHANNEL ('#' MESSAGE)?)?
-HOST    --- The server hostname
-PORT    --- The server port. If unspecified defaults to 1111
-CHANNEL --- An URL-encoded version of the channel name
-MESSAGE ::= USER '@' ID
-USER    --- An URL-encoded version of the message FROM
-ID      --- An URL-encoded version of the message ID
-::
-
-Or in other words, the protocol should be ``lichat``, the path is the channel name, and the fragment encodes the message. It needs to encode both the sender and ID in order to uniquely identify the message, as IDs are only meant to be unique per user. The URL's query paramaters are left unspecified and may be used by clients and servers to include additional information.
-
-## 26. Roles (shirakumo-roles)
+## 25. Roles (shirakumo-roles)
 Purpose: allows grouping sets of permissions into roles for easier management.
 
 A new server-side object is introduced called ``role`` with the following attributes:
