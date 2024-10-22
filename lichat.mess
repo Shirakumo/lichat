@@ -163,10 +163,10 @@ OBJECT-EXTENSION     ::= (define-object-extension CLASS-NAME (SUPERCLASS*) SLOT*
 ::
 
 The meaning of each definition is as follows:
-- ``package`` Introduces a new, known package with the ``PACKAGE-NAME`` as its name.
-- ``object`` Introduces a new object type using ``CLASS-NAME`` as its name. Each ``SUPERCLASS`` must name an object type that was previously introduced, and whose fields //and behaviour// should be inherited. Each ``SLOT`` defines a slot that the object holds in addition to the inherited ones. If the slot definition includes the ``:optional`` keyword, the slot may be omitted when serialising to the wire. If ``:optional`` is not included, the slot //must// be serialised. When translating from the wire, an omitted ``:optional`` slot should be initialised to an empty value. An omitted non-``:optional`` slot must result in a ``malformed-update`` error.
-- ``extension`` Introduces a protocol extension of the given ``EXTENSION-NAME``. Its body includes new definitions that need to be added if the extension is to be supported.
-- ``object-extension`` Changes an existing object type of ``CLASS-NAME`` by either introducing additional ``SUPERCLASS``es, or introducing additional ``SLOT`` definitions on the object. Note that in order to stay backwards compatible, every slot specified via an ``object-extension`` must be ``:optional``.
+- ``PACKAGE`` Introduces a new, known package with the ``PACKAGE-NAME`` as its name.
+- ``OBJECT`` Introduces a new object type using ``CLASS-NAME`` as its name. Each ``SUPERCLASS`` must name an object type that was previously introduced, and whose fields //and behaviour// should be inherited. Each ``SLOT`` defines a slot that the object holds in addition to the inherited ones. If the slot definition includes the ``:optional`` keyword, the slot may be omitted when serialising to the wire. If ``:optional`` is not included, the slot //must// be serialised. When translating from the wire, an omitted ``:optional`` slot should be initialised to an empty value. An omitted non-``:optional`` slot must result in a ``malformed-update`` error.
+- ``EXTENSION`` Introduces a protocol extension of the given ``EXTENSION-NAME``. Its body includes new definitions that need to be added if the extension is to be supported.
+- ``OBJECT-EXTENSION`` Changes an existing object type of ``CLASS-NAME`` by either introducing additional ``SUPERCLASS``es, or introducing additional ``SLOT`` definitions on the object. Note that in order to stay backwards compatible, every slot specified via an ``OBJECT-EXTENSION`` must be ``:optional``.
 
 ## 2. Server Objects
 The server must keep track of a number of objects that are related to the current state of the chat system. The client may also keep track of some of these objects for its own convenience.
@@ -202,74 +202,82 @@ Any other channel is considered a "regular channel".
 The names of channels are constrained in the same way as user names. See §2.2.1.
 
 ### 2.5 Permission Rules
-A permission rule specifies the restrictions of an update type on who is allowed to perform the update on the channel. The structure is as follows:
+A permission rule specifies the restrictions of an update type on who is allowed to perform the update on the channel. Rules are denoted in a sub-format as general Lichat ``EXPR``s with the following structure:
 
 ::BNF
-RULE     ::= (type EXPR)
-EXPR     ::= t | nil | EXCLUDE | INCLUDE
-EXCLUDE  ::= (- username*)
-INCLUDE  ::= (+ username*)
+RULESET    ::= (RULE*)
+RULE       ::= (TYPE EXPR)
+EXPR       ::= ANYONE | NOONE | EXCLUDE | INCLUDE | REGISTRANT
+EXCLUDE    ::= (- username*)
+INCLUDE    ::= (+ username*)
+USERNAME   ::= STRING --- The name of a user, subject to §2.2.1
+TYPE       ::= SYMBOL --- The name of an update type
+ANYONE     ::= t
+NOONE      ::= nil
+REGISTRANT ::= registrant
 ::
 
-Where ``type`` is the name of an update class, and ``username`` is the name of a user object. ``t`` is the symbol ``T`` and indicates "anyone". ``nil`` is the symbol ``NIL`` and indicates "no one". The ``INCLUDE`` expression only allows users whose names are listed to perform the action. The ``EXCLUDE`` expression allows anyone except users whose names are listed to perform the action. The expression ``t`` is thus equivalent to ``(-)`` and the expression ``nil`` is equivalent to ``(+)``.
+The ``INCLUDE`` expression only allows users whose names are listed to perform the action. The ``EXCLUDE`` expression allows anyone except users whose names are listed to perform the action. The expression ``t`` is thus equivalent to ``(-)`` and the expression ``nil`` is equivalent to ``(+)``. The ``registrant`` symbol is to be replaced with the username of the user that created the channel, and is only used in the descriptions below. It cannot appear in any rules as they appear in a ``permissions`` update.
+
+The following sections list default permission sets for channels depending on how the channel is created. Note that these sets are not exhaustive or normative. Extensions may add to the sets or change their rules. Clients may assume these to be default, however.
 
 ### 2.5.1 Primary Channel Default Permissions
-The default permissions for the primary channel should look like this, where ``:registrant`` should be replaced with the server user's username:
+The default permissions for primary channels (§2.4.1) should look like this, with the registrant being the server user.
 
 ::
-(capabilities T)
-(channels T)
-(connect T)
-(create T)
-(disconnect T)
-(grant (+ :registrant))
-(join T)
-(kick (+ :registrant))
-(leave NIL)
-(message (+ :registrant))
-(permissions (+ :registrant))
-(ping T)
-(pong T)
-(pull NIL)
-(register T)
-(search T)
-(server-info (+ :registrant))
-(user-info T)
-(users T)
+((capabilities t)
+ (channels t)
+ (connect t)
+ (create t)
+ (disconnect t)
+ (grant (+ registrant))
+ (join t)
+ (kick (+ registrant))
+ (leave nil)
+ (message (+ registrant))
+ (permissions (+ registrant))
+ (ping t)
+ (pong t)
+ (pull nil)
+ (register t)
+ (search t)
+ (server-info (+ registrant))
+ (user-info t)
+ (users t))
 ::
 
-### 2.5.2 Regular Channel Default Permissions
-The default permissions for the primary channel should look like this, where ``:registrant`` should be replaced with the channel creator user's username:
+### 2.5.2 Anonymous Channel Default Permissions
+The default permissions for an anonymous channel (§2.4.2) should look like this:
 
 ::
-(capabilities T)
-(channels T)
-(deny (+ :registrant))
-(grant (+ :registrant))
-(join T)
-(kick (+ :registrant))
-(leave T)
-(message T)
-(permissions (+ :registrant))
-(pull T)
-(users T)
+((capabilities t)
+ (channels nil)
+ (deny nil)
+ (grant nil)
+ (join nil)
+ (kick (+ registrant))
+ (leave t)
+ (message t)
+ (permissions nil)
+ (pull t)
+ (users t))
 ::
 
-### 2.5.3 Anonymous Channel Default Permissions
-The default permissions for the primary channel should look like this, where ``:registrant`` should be replaced with the channel creator user's username:
+### 2.5.3 Regular Channel Default Permissions
+The default permissions for a regular, non-anonymous channel (§2.4.3) should look like this:
 
 ::
-(capabilities T)
-(channels NIL)
-(deny NIL)
-(grant NIL)
-(join NIL)
-(kick (+ :registrant))
-(leave T)
-(message T)
-(permissions NIL)
-(pull T)
-(users T)
+((capabilities t)
+ (channels t)
+ (deny (+ registrant))
+ (grant (+ registrant))
+ (join t)
+ (kick (+ registrant))
+ (leave t)
+ (message t)
+ (permissions (+ registrant))
+ (pull t)
+ (users t))
 ::
 
 ## 3. General Interaction
@@ -378,15 +386,15 @@ See §2.5 for an explanation of the proper syntax of the permissions. Note that 
 
 As a shortcut, permissions can also be managed with the ``grant`` and ``deny`` updates, which change an individual rule. When a server receives a ``grant`` update, it must update the corresponding rule as follows:
 
-1. If the rule is ``T``, nothing is done.
-2. If the rule is ``NIL``, it is changed to ``(+ user)``.
+1. If the rule is ``t``, nothing is done.
+2. If the rule is ``nil``, it is changed to ``(+ user)``.
 3. If the rule is an exclusion mask, ``user`` is removed from the mask.
 4. If the rule is an inclusion mask, ``user`` is added to the mask if they are not already on it.
 
 When the server receives a ``deny`` update, it must update the corresponding rule as follows:
 
-1. If the rule is ``T``, it is changed to ``(- user)``.
-2. If the rule is ``NIL``, nothing is done.
+1. If the rule is ``t``, it is changed to ``(- user)``.
+2. If the rule is ``nil``, nothing is done.
 3. If the rule is an exclusion mask, ``user`` is added to the mask if they are not already on it.
 4. If the rule is an inclusion mask, ``user`` is removed from the mask.
 
