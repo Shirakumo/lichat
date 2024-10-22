@@ -206,8 +206,8 @@ A permission rule specifies the restrictions of an update type on who is allowed
 
 ::BNF
 RULESET    ::= (RULE*)
-RULE       ::= (TYPE EXPR)
-EXPR       ::= ANYONE | NOONE | EXCLUDE | INCLUDE | REGISTRANT
+RULE       ::= (TYPE MASK)
+MASK       ::= ANYONE | NOONE | EXCLUDE | INCLUDE | REGISTRANT
 EXCLUDE    ::= (- username*)
 INCLUDE    ::= (+ username*)
 USERNAME   ::= STRING --- The name of a user, subject to §2.2.1
@@ -217,7 +217,7 @@ NOONE      ::= nil
 REGISTRANT ::= registrant
 ::
 
-The ``INCLUDE`` expression only allows users whose names are listed to perform the action. The ``EXCLUDE`` expression allows anyone except users whose names are listed to perform the action. The expression ``t`` is thus equivalent to ``(-)`` and the expression ``nil`` is equivalent to ``(+)``. The ``registrant`` symbol is to be replaced with the username of the user that created the channel, and is only used in the descriptions below. It cannot appear in any rules as they appear in a ``permissions`` update.
+The ``INCLUDE`` mask only allows users whose names are listed to perform the action. The ``EXCLUDE`` mask allows anyone except users whose names are listed to perform the action. The mask ``t`` is thus equivalent to ``(-)`` and the mask ``nil`` is equivalent to ``(+)``. The ``registrant`` symbol is to be replaced with the username of the user that created the channel, and is only used in the descriptions below. It cannot appear in any rules as they appear in a ``permissions`` update.
 
 The following sections list default permission sets for channels depending on how the channel is created. Note that these sets are not exhaustive or normative. Extensions may add to the sets or change their rules. Clients may assume these to be default, however.
 
