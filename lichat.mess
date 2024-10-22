@@ -90,23 +90,24 @@ For failures the different checks on the server may fail, in which case the serv
 ## 1. Wire Format & Data Types
 The Lichat protocol defines the following basic data type hierarchy:
 
-- ``number``
-  - ``integer``
-    - ``time`` An integer representing time as the number of seconds since 1900.1.1 0:0:0 UTC.
-  - ``float``
-  - ``id``
-- ``symbol``
-  - ``keyword`` A symbol whose package is ``keyword``.
-  - ``boolean``
-    - ``null`` The symbol ``NIL`` from the ``lichat`` package.
-    - ``true`` The symbol ``T`` from the ``lichat`` package.
-- ``list``
-  - ``(list type)`` A list with each element being of type ``type``.
-- ``string``
-  - ``username`` See §2.2.1
-  - ``channelname`` See §2.4.4
-  - ``password`` See §2.3.1
-- ``object``
+- ``t`` The "top" type.
+  - ``number`` All numbers.
+    - ``integer`` All integers of arbitrary size.
+      - ``id`` A positive integer.
+      - ``time`` A positive integer representing time as the number of seconds since 1900.1.1 0:0:0 UTC.
+    - ``float`` A floating point number of arbitrary precision.
+  - ``symbol`` An object with a name and a package, see §1.1.
+    - ``keyword`` A symbol whose package is ``keyword``.
+    - ``boolean`` A symbol used to represent "true" and "false" states.
+      - ``null`` The symbol ``NIL`` from the ``lichat`` package, which stands in for "false".
+      - ``true`` The symbol ``T`` from the ``lichat`` package.
+  - ``list`` An ordered sequence of objects.
+    - ``(list type)`` A list with each element being of type ``type``.
+  - ``string`` A string of arbitrary Unicode text.
+    - ``username`` See §2.2.1
+    - ``channelname`` See §2.4.4
+    - ``password`` See §2.3.1
+  - ``object`` A structured association between named fields and values. See §1.2
 
 The wire format is based on UTF-8 character streams on which objects are serialised in a secure, simplified s-expression format. The format is as follows:
 
