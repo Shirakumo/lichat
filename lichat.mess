@@ -386,15 +386,15 @@ See §2.5 for an explanation of the proper syntax of the permissions. Note that 
 
 As a shortcut, permissions can also be managed with the ``grant`` and ``deny`` updates, which change an individual rule. When a server receives a ``grant`` update, it must update the corresponding rule as follows:
 
-1. If the rule is ``T``, nothing is done.
-2. If the rule is ``NIL``, it is changed to ``(+ user)``.
+1. If the rule is ``t``, nothing is done.
+2. If the rule is ``nil``, it is changed to ``(+ user)``.
 3. If the rule is an exclusion mask, ``user`` is removed from the mask.
 4. If the rule is an inclusion mask, ``user`` is added to the mask if they are not already on it.
 
 When the server receives a ``deny`` update, it must update the corresponding rule as follows:
 
-1. If the rule is ``T``, it is changed to ``(- user)``.
-2. If the rule is ``NIL``, nothing is done.
+1. If the rule is ``t``, it is changed to ``(- user)``.
+2. If the rule is ``nil``, nothing is done.
 3. If the rule is an exclusion mask, ``user`` is added to the mask if they are not already on it.
 4. If the rule is an inclusion mask, ``user`` is removed from the mask.
 
