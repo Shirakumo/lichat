@@ -1,6 +1,92 @@
 # Lichat Protocol Specification
 This is the specification for the Lichat chat protocol version 2.
 
+## 0. Overview
+Lichat is a protocol that is intended to be as simple to implement a client for as possible without sacrificing functionality. In basic operation, an end-user uses a ``Client`` in order to connect to a server. Each such client receives a corresponding ``Connection`` object on the server, which is tied to a ``User``. If the user's name is registered, then it is tied to a ``Profile`` that stores information about the user, such as the login password. A ``User`` can inhabit multiple ``Channel``s at once, through which all communication happens. All communication happens through ``Update`` objects, which are uniquely identified.
+
+::
+             [Profile]
+               1:1
+[Channel] N:N [User] 1:N [Connection] 1:1 [Client]
+    │                                        │
+    ╰─────────────────[Update]───────────────╯
+::
+
+The server itself is represented via a ``User`` instance named after the server, and ``Channel`` instance that is named the same. All connected ``User``s inhabit that ``Channel``. All communication directly from or to the server uses the server ``User``. All other communication happens via a ``Channel``. 
+
+As such, in order to directly message another ``User``, the two users must inhabit a common ``Channel``. For this purpose, "anonymous channels" are offered, which do not have a globally registered name, so other ``User``s cannot enter it without being invited by a ``User`` already a member of the ``Channel``.
+
+A client can determine whether their ``Update`` was correctly received and processed by looking for a response ``Update`` with the same ``id`` and ``from`` fields, or with the ``id`` stored in the ``update-id`` field in the case of a ``failure``.
+
+::
+       Success                     Failure
+
+[Client]      [Server]    [Client]          [Server]
+   │              │          │                 │
+   │───[Update]──>│          │────[Update]────>│
+   │  :from test  │          │  :from test     │
+   │  :id 123     │          │  :id 123        │
+   │              │          │                 │
+   │<──[Update]───│          │<───[Failure]────│
+   │  :from test  │          │  :from server   │
+   │  :id 123     │          │  :id xyz        │
+   │              │          │  :update-id 123 │
+   │              │          │                 │
+::
+
+Note that in the case of a successful send, the server may transform the ``Update`` into a different type as well as change field values, add, and remove fields. The ``Update`` that is received may thus not be identical to the one sent.
+
+In order to regulate permissions, each ``Channel`` holds a map that ties an ``Update`` type to a permission rule, which can either be a whitelist or a blacklist. Permission handling for administrative ``Update``s or other ``Update`` types that would not target a specific ``Channel`` are simply handled by the server ``Channel``'s permission map. Further, the base protocol has no concept of roles, special users, or modes, greatly simplifying the permission handling to simply understanding the concept of the permission map.
+
+Lichat is simple enough that you can act as a client yourself through a simple TCP connection via Telnet or similar. Note though that the protocol does not specify a specific carrier, so Lichat could also be embedded into other protocols like WebSockets, or pretty much anything that can carry strings.
+
+While clients are as simple as possible on purpose, servers are much more involved. A lot of the responsibilities usually left to clients are instead shifted to the server, such as ping tracking, clock verification, sanitisation, and so on.
+
+The most complicated exchange flow between a client and server is the initial connection establishment, whose procedure for a new, unauthenticated user looks as follows:
+
+::
+[Client]                 [Server]
+   │                         │
+   │< underlying connection >│
+   │                         │── check for connection limit ─╮
+   │── (connect              │<──── ok ──────────────────────╯
+   │    :id 0                │
+   │    :clock 1             │
+   │    :from "test"         │
+   │    :version "2.0"       │
+   │    :extensions ()) ────>│
+   │                         │── check version and fields ─╮
+   │                         │<──── compatible ────────────╯
+   │                         │
+   │                         │── check for "test" user ─╮
+   │                         │<──── not found ──────────╯
+   │                         │
+   │                         │── create "test" user object ─╮
+   │                         │<──── ok ─────────────────────╯
+   │   (connect         ─────│
+   │    :id 0                │
+   │    :clock 2             │
+   │    :from "test"         │
+   │    :version "2.0"       │
+   │<─  :extensions ())      │
+   │                         │
+   │   (join               ──│
+   │    :id 1                │
+   │    :clock 3             │
+   │    :from "test"         │
+   │<─  :channel "Server")   │
+   │                         │
+   │   (message            ──│
+   │    :id 2                │
+   │    :clock 4             │
+   │    :from "Server"       │
+   │    :channel "Server"    │
+   │<─  :message "HELLO!")   │
+   │                         │
+::
+
+For failures the different checks on the server may fail, in which case the server sends back a corresponding ``Failure`` update and closes the underlying conection. For authenticated users, the server will additionally check the provided password against its profile database.
+
 ## 1. Wire Format & Data Types
 The Lichat protocol defines the following basic data type hierarchy:
 

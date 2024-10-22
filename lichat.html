@@ -34,7 +34,60 @@ article code{
 article .code-block{
     padding: 0.1em 0.5em;
     overflow-x: auto;
-}</style><h1 id="lichat protocol specification">Lichat Protocol Specification</h1><p>This is the specification for the Lichat chat protocol version 2.</p><h2 id="1. wire format &amp; data types">1. Wire Format &amp; Data Types</h2><p>The Lichat protocol defines the following basic data type hierarchy:</p><ul><li><p><code>number</code></p><ul><li><p><code>integer</code></p><ul><li><p><code>time</code> An integer representing time as the number of seconds since 1900.1.1 1:0:0 UTC.</p></li></ul></li><li><p><code>float</code></p></li><li><p><code>id</code></p></li></ul></li><li><p><code>symbol</code></p><ul><li><p><code>keyword</code> A symbol whose package is <code>keyword</code>.</p></li><li><p><code>boolean</code></p><ul><li><p><code>null</code> The symbol <code>NIL</code> from the <code>lichat</code> package.</p></li><li><p><code>true</code> The symbol <code>T</code> from the <code>lichat</code> package.</p></li></ul></li></ul></li><li><p><code>list</code></p><ul><li><p><code>(list type)</code> A list with each element being of type <code>type</code>.</p></li></ul></li><li><p><code>string</code></p><ul><li><p><code>username</code> See §2.2.1</p></li><li><p><code>channelname</code> See §2.4.4</p></li><li><p><code>password</code> See §2.3.1</p></li></ul></li><li><p><code>object</code></p></li></ul><p>The wire format is based on UTF-8 character streams on which objects are serialised in a secure, simplified s-expression format. The format is as follows:</p><code style="display:block" class="code-block" data-language="BNF"><pre>UPDATE   ::= OBJECT NULL
+}</style><h1 id="lichat protocol specification">Lichat Protocol Specification</h1><p>This is the specification for the Lichat chat protocol version 2.</p><h2 id="0. overview">0. Overview</h2><p>Lichat is a protocol that is intended to be as simple to implement a client for as possible without sacrificing functionality. In basic operation, an end-user uses a <code>Client</code> in order to connect to a server. Each such client receives a corresponding <code>Connection</code> object on the server, which is tied to a <code>User</code>. If the user's name is registered, then it is tied to a <code>Profile</code> that stores information about the user, such as the login password. A <code>User</code> can inhabit multiple <code>Channel</code>s at once, through which all communication happens. All communication happens through <code>Update</code> objects, which are uniquely identified.</p><code style="display:block" class="code-block"><pre>             [Profile]
+               1:1
+[Channel] N:N [User] 1:N [Connection] 1:1 [Client]
+    │                                        │
+    ╰─────────────────[Update]───────────────╯</pre></code><p>The server itself is represented via a <code>User</code> instance named after the server, and <code>Channel</code> instance that is named the same. All connected <code>User</code>s inhabit that <code>Channel</code>. All communication directly from or to the server uses the server <code>User</code>. All other communication happens via a <code>Channel</code>. </p><p>As such, in order to directly message another <code>User</code>, the two users must inhabit a common <code>Channel</code>. For this purpose, &quot;anonymous channels&quot; are offered, which do not have a globally registered name, so other <code>User</code>s cannot enter it without being invited by a <code>User</code> already a member of the <code>Channel</code>.</p><p>A client can determine whether their <code>Update</code> was correctly received and processed by looking for a response <code>Update</code> with the same <code>id</code> and <code>from</code> fields, or with the <code>id</code> stored in the <code>update-id</code> field in the case of a <code>failure</code>.</p><code style="display:block" class="code-block"><pre>       Success                     Failure
+
+[Client]      [Server]    [Client]          [Server]
+   │              │          │                 │
+   │───[Update]──&gt;│          │────[Update]────&gt;│
+   │  :from test  │          │  :from test     │
+   │  :id 123     │          │  :id 123        │
+   │              │          │                 │
+   │&lt;──[Update]───│          │&lt;───[Failure]────│
+   │  :from test  │          │  :from server   │
+   │  :id 123     │          │  :id xyz        │
+   │              │          │  :update-id 123 │
+   │              │          │                 │</pre></code><p>Note that in the case of a successful send, the server may transform the <code>Update</code> into a different type as well as change field values, add, and remove fields. The <code>Update</code> that is received may thus not be identical to the one sent.</p><p>In order to regulate permissions, each <code>Channel</code> holds a map that ties an <code>Update</code> type to a permission rule, which can either be a whitelist or a blacklist. Permission handling for administrative <code>Update</code>s or other <code>Update</code> types that would not target a specific <code>Channel</code> are simply handled by the server <code>Channel</code>'s permission map. Further, the base protocol has no concept of roles, special users, or modes, greatly simplifying the permission handling to simply understanding the concept of the permission map.</p><p>Lichat is simple enough that you can act as a client yourself through a simple TCP connection via Telnet or similar. Note though that the protocol does not specify a specific carrier, so Lichat could also be embedded into other protocols like WebSockets, or pretty much anything that can carry strings.</p><p>While clients are as simple as possible on purpose, servers are much more involved. A lot of the responsibilities usually left to clients are instead shifted to the server, such as ping tracking, clock verification, sanitisation, and so on.</p><p>The most complicated exchange flow between a client and server is the initial connection establishment, whose procedure for a new, unauthenticated user looks as follows:</p><code style="display:block" class="code-block"><pre>[Client]                 [Server]
+   │                         │
+   │&lt; underlying connection &gt;│
+   │                         │── check for connection limit ─╮
+   │── (connect              │&lt;──── ok ──────────────────────╯
+   │    :id 0                │
+   │    :clock 1             │
+   │    :from &quot;test&quot;         │
+   │    :version &quot;2.0&quot;       │
+   │    :extensions ()) ────&gt;│
+   │                         │── check version and fields ─╮
+   │                         │&lt;──── compatible ────────────╯
+   │                         │
+   │                         │── check for &quot;test&quot; user ─╮
+   │                         │&lt;──── not found ──────────╯
+   │                         │
+   │                         │── create &quot;test&quot; user object ─╮
+   │                         │&lt;──── ok ─────────────────────╯
+   │   (connect         ─────│
+   │    :id 0                │
+   │    :clock 2             │
+   │    :from &quot;test&quot;         │
+   │    :version &quot;2.0&quot;       │
+   │&lt;─  :extensions ())      │
+   │                         │
+   │   (join               ──│
+   │    :id 1                │
+   │    :clock 3             │
+   │    :from &quot;test&quot;         │
+   │&lt;─  :channel &quot;Server&quot;)   │
+   │                         │
+   │   (message            ──│
+   │    :id 2                │
+   │    :clock 4             │
+   │    :from &quot;Server&quot;       │
+   │    :channel &quot;Server&quot;    │
+   │&lt;─  :message &quot;HELLO!&quot;)   │
+   │                         │</pre></code><p>For failures the different checks on the server may fail, in which case the server sends back a corresponding <code>Failure</code> update and closes the underlying conection. For authenticated users, the server will additionally check the provided password against its profile database.</p><h2 id="1. wire format &amp; data types">1. Wire Format &amp; Data Types</h2><p>The Lichat protocol defines the following basic data type hierarchy:</p><ul><li><p><code>number</code></p><ul><li><p><code>integer</code></p><ul><li><p><code>time</code> An integer representing time as the number of seconds since 1900.1.1 1:0:0 UTC.</p></li></ul></li><li><p><code>float</code></p></li><li><p><code>id</code></p></li></ul></li><li><p><code>symbol</code></p><ul><li><p><code>keyword</code> A symbol whose package is <code>keyword</code>.</p></li><li><p><code>boolean</code></p><ul><li><p><code>null</code> The symbol <code>NIL</code> from the <code>lichat</code> package.</p></li><li><p><code>true</code> The symbol <code>T</code> from the <code>lichat</code> package.</p></li></ul></li></ul></li><li><p><code>list</code></p><ul><li><p><code>(list type)</code> A list with each element being of type <code>type</code>.</p></li></ul></li><li><p><code>string</code></p><ul><li><p><code>username</code> See §2.2.1</p></li><li><p><code>channelname</code> See §2.4.4</p></li><li><p><code>password</code> See §2.3.1</p></li></ul></li><li><p><code>object</code></p></li></ul><p>The wire format is based on UTF-8 character streams on which objects are serialised in a secure, simplified s-expression format. The format is as follows:</p><code style="display:block" class="code-block" data-language="BNF"><pre>UPDATE   ::= OBJECT NULL
 OBJECT   ::= '(' WHITE* SYMBOL (WHITE+ SYMBOL WHITE+ EXPR)* WHITE* ')'
 EXPR     ::= STRING | LIST | SYMBOL | NUMBER
 STRING   ::= '&quot;' ('\' ANY | !('&quot;' | NULL))* '&quot;'
